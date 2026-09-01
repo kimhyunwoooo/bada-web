@@ -1,0 +1,153 @@
+/**
+ * DESIGN-mastercard.md 토큰을 CSS 변수로 옮긴 것.
+ * 인라인 hex 금지 — 항상 이 변수를 참조한다.
+ *
+ * 키즈 서비스이므로 원본보다 한 단계 더 둥글고 부드럽게 조정했다 (아래 주석 참고).
+ *
+ * ⚠️ 화면과 종이는 다른 규칙을 따른다.
+ *    화면(부모가 본다) = 이 시스템. 종이(아이가 쓴다) = 흰 바탕 + 흑백 (--font-paper 참고)
+ */
+
+:root {
+  /* ── Surfaces ───────────────────────────────────────
+   * 순백은 페이지 바탕이 아니다. 따뜻한 퍼티 크림이 이 시스템의 출발점이다.
+   */
+  --canvas: #f3f0ee; /* 페이지 캔버스 */
+  --lifted: #fcfbfa; /* 캔버스 위에 놓인 종이 한 겹 */
+  --white: #ffffff; /* 떠 있는 내비, 위성 버튼, 카드 */
+  --bone: #f4f4f4;
+
+  /* ── Ink ────────────────────────────────────────────
+   * 순수 검정이 아니라 살짝 따뜻한 near-black. 크림 위에서 차갑게 튀지 않는다.
+   */
+  --ink: #141413;
+  --charcoal: #262627;
+  --slate: #696969; /* 보조 텍스트 */
+  --granite: #555555;
+  --taupe: #d1cdc7; /* 아주 옅은 속삭임. 대비가 낮으니 장식에만 */
+
+  /* ── Accent ─────────────────────────────────────────
+   * Signal Orange(#CF4500)는 원본에서 동의·법적 고지 전용이다.
+   * 이 앱에는 그런 흐름이 없으므로 토큰만 두고 비워 둔다.
+   * 실제 강조는 Light Signal Orange가 맡는다 — 원본에서도 "주의를 끄는 신호" 역할이다.
+   */
+  --signal: #cf4500;
+  --accent: #f37338; /* 아이콘, 활성 표시, 장식 궤적 */
+  --accent-wash: #fbe6dc; /* 아이콘 자리, 옅은 배지 */
+  --clay: #9a3a0a;
+  --link: #3860be;
+
+  --line: rgba(20, 20, 19, 0.12);
+  --line-soft: rgba(20, 20, 19, 0.07);
+  --on-ink: #f3f0ee; /* 잉크 위의 글자는 순백이 아니라 캔버스 크림 */
+  --on-ink-soft: rgba(255, 255, 255, 0.68);
+
+  --error: #c82014;
+
+  /**
+   * 학습지 인쇄 기호. UI 색이 아니라 종이 위의 기호이므로 팔레트 밖에 있다.
+   */
+  --mark-space: #c82014;
+  --mark-trace: #c8c8c8;
+
+  /* ── Typography ─────────────────────────────────────
+   * MarkForMC는 전용 서체라 쓸 수 없다. 한글 서비스이므로 Pretendard로 통일한다.
+   * 원본의 서명인 **본문 450 굵기**와 **제목 -2% 자간**은 그대로 가져간다.
+   * Pretendard Variable이 450을 지원하기 때문에 가능하다.
+   */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    'Apple SD Gothic Neo', system-ui, sans-serif;
+
+  /** 학습지 전용. 화면 서체가 또 바뀌어도 아이가 따라 쓸 획은 흔들리면 안 된다 */
+  --font-paper: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo',
+    system-ui, sans-serif;
+
+  --fs-h1: clamp(34px, 5vw, 64px);
+  --fs-h2: clamp(26px, 3vw, 36px);
+  --fs-h3: 24px;
+  --fs-lead: 18px;
+  --fs-body: 16px;
+  --fs-sm: 14px;
+  --fs-xs: 13px;
+
+  --lh-h1: 1.05;
+  --lh-h2: 1.15;
+  --lh-h3: 1.2;
+  --lh-body: 1.5;
+
+  /* 제목은 -2%로 단단히 묶고, 아이브로우만 +4%로 벌린다 */
+  --ls-tight: -0.02em;
+  --ls-btn: -0.02em;
+  --ls-eyebrow: 0.04em;
+
+  /* 450은 이 시스템의 서명 굵기 — 400보다 부드럽고 500보다 무르다 */
+  --w-body: 450;
+  --w-mid: 500;
+  --w-bold: 700;
+
+  /* ── Spacing (8 배수) ───────────────────────────────── */
+  --sp-1: 8px;
+  --sp-2: 16px;
+  --sp-3: 24px;
+  --sp-4: 32px;
+  --sp-5: 48px;
+  --sp-6: 64px;
+  --sp-7: 96px;
+  --sp-8: 128px;
+
+  --gutter: var(--sp-2);
+  --section: var(--sp-5);
+
+  /* ── Radius ─────────────────────────────────────────
+   * 8~16px 중간값은 쓰지 않는다. 딱 세 단계 + 원뿐이다.
+   *
+   *   --r-pill    누르는 것 전부 (버튼·칩·입력·세그먼트·태그·목록 행)
+   *   --r-card    카드와 패널 (카드·모드 선택·도구막대·공유 패널)
+   *   --r-inner   카드 안에 중첩된 면 (견본 영역·미리보기·textarea)
+   *   --r-circle  아이콘 자리·위성 버튼
+   *
+   * 키즈 조정: 원본은 버튼을 20px로 두지만 여기서는 풀 필로 간다.
+   * 카드도 20이 아니라 40으로 올린다. 둥글수록 부드럽게 읽힌다.
+   */
+  --r-pill: 999px;
+  --r-card: 40px;
+  --r-inner: 20px;
+  --r-circle: 50%;
+
+  /* ── Elevation ──────────────────────────────────────
+   * 그림자는 방향을 가진 빛이 아니라 대기의 쿠션이다.
+   * 넓게(24~48px) 퍼지고 진하지 않게(≤10%).
+   */
+  --e-float: 0 4px 24px rgba(0, 0, 0, 0.04);
+  --e-card: 0 24px 48px rgba(0, 0, 0, 0.08);
+  --e-drama: 0 70px 110px rgba(0, 0, 0, 0.25);
+  /* 화면 위의 A4 학습지 — 실물 종이가 캔버스 위에 놓인 느낌 */
+  --e-paper: 0 24px 48px rgba(0, 0, 0, 0.1);
+
+  --ease: 0.2s ease;
+  --ease-soft: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --press: scale(0.97);
+
+  /* ── Layout ─────────────────────────────────────────── */
+  --w-content: 1280px;
+  --w-text: 760px;
+  --nav-h: 64px;
+
+  /* 1mm를 CSS px로 (96dpi) — 종이 미리보기 축척 계산에 쓴다 */
+  --mm: 3.779527559px;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: var(--sp-5);
+    --section: var(--sp-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --gutter: var(--sp-6);
+    --section: var(--sp-7);
+    --nav-h: 72px;
+  }
+}

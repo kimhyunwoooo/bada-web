@@ -1,0 +1,16 @@
+node_modules
+dist
+dist-ssr
+*.local
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.log
+
+# 이 프로젝트와 무관한 사내 문서가 루트에 섞여 들어오는 것을 막는다
+# (배포 저장소가 공개일 수 있으므로 문서류는 기본 제외)
+*.pdf
+*.docx
+*.xlsx
+*.pptx

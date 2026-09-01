@@ -1,0 +1,70 @@
+/**
+ * 인쇄 설계 (PLAN §5).
+ *
+ * @page margin을 0으로 두고 종이 여백은 .paper의 padding으로 준다.
+ * 이렇게 해야 화면 미리보기와 인쇄 결과의 여백이 정확히 같아진다.
+ * (@page margin과 padding을 함께 쓰면 여백이 두 번 들어간다)
+ */
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+  }
+
+  /* 화면용으로 잡아둔 축척 높이를 풀어준다 (인라인 style보다 !important가 우선한다) */
+  .paper-stage {
+    padding: 0 !important;
+    background: #fff !important;
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* 화면에서만 쓰는 축척을 되돌린다 — 종이에는 1:1로 나가야 한다 */
+  .paper-slot {
+    width: auto !important;
+    height: auto !important;
+    position: static !important;
+  }
+
+  .paper-scaler {
+    position: static !important;
+    transform: none !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    gap: 0 !important;
+  }
+
+  .paper {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    break-after: page;
+  }
+
+  .paper:last-child {
+    break-after: auto;
+  }
+
+  /* 옅은 회색 글자와 빨간 V가 인쇄에서 날아가지 않게 한다 */
+  .paper,
+  .paper * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 문항이 페이지 경계에서 잘리지 않게 (페이지 분할은 JS가 이미 확정했지만 안전망) */
+  .sheet-item {
+    break-inside: avoid;
+  }
+}

@@ -1,0 +1,453 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  /* 450은 이 시스템의 서명 굵기. 400으로 내리면 정체성이 납작해진다 */
+  font-weight: var(--w-body);
+  line-height: var(--lh-body);
+  color: var(--ink);
+  /* 순백이 아니라 따뜻한 퍼티 크림 */
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  /* 한글은 어절 단위로 끊는다. 기본값이면 낱말이 쪼개진다 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+/* 내용이 짧은 페이지에서도 푸터가 화면 바닥에 붙게 한다 */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#main {
+  flex: 1 0 auto;
+}
+
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+  border-radius: var(--r-pill);
+}
+
+::selection {
+  background: var(--accent-wash);
+}
+
+/* ── Typography ─────────────────────────────────────
+ * 대비는 크기·굵기·자간에서만 나온다. 두 번째 서체를 섞지 않는다.
+ */
+
+.t-h1 {
+  font-size: var(--fs-h1);
+  font-weight: var(--w-mid);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--ls-tight);
+}
+
+.t-h2 {
+  font-size: var(--fs-h2);
+  font-weight: var(--w-mid);
+  line-height: var(--lh-h2);
+  letter-spacing: var(--ls-tight);
+}
+
+.t-h3 {
+  font-size: var(--fs-h3);
+  font-weight: var(--w-mid);
+  line-height: var(--lh-h3);
+  letter-spacing: var(--ls-tight);
+}
+
+.t-lead {
+  font-size: var(--fs-lead);
+  font-weight: var(--w-body);
+  line-height: 1.45;
+}
+
+.t-sm {
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+}
+
+.t-xs {
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+}
+
+.t-muted {
+  color: var(--slate);
+}
+
+.t-whisper {
+  color: var(--taupe);
+}
+
+/**
+ * 아이브로우 — 이 시스템의 구역 표식.
+ * 앞의 작은 점 하나가 정체성이므로 빼지 않는다.
+ */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-sm);
+  font-weight: var(--w-bold);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.eyebrow::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-circle);
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+
+/* ── Buttons ────────────────────────────────────────
+ * 키즈 조정: 원본의 20px 대신 풀 필. 둥글수록 부드럽게 읽힌다.
+ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  min-height: 48px;
+  padding: 10px 28px;
+  border: 1.5px solid transparent;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-body);
+  font-weight: var(--w-mid);
+  letter-spacing: var(--ls-btn);
+  line-height: 1.2;
+  transition: background-color var(--ease), color var(--ease), border-color var(--ease),
+    transform var(--ease);
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: var(--press);
+}
+
+.btn[disabled] {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-sm {
+  min-height: 40px;
+  padding: 6px 20px;
+  font-size: var(--fs-sm);
+}
+
+.btn-lg {
+  min-height: 56px;
+  padding: 14px 36px;
+  font-size: var(--fs-lead);
+}
+
+/* 잉크 알약 — 본문의 모든 주요 동작 */
+.btn-ink {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+.btn-ink:hover {
+  background: var(--charcoal);
+  border-color: var(--charcoal);
+}
+
+/* 흰 알약 + 잉크 테두리 — 보조 동작 */
+.btn-outline {
+  background: var(--white);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.btn-outline:hover {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+/* 잉크 면 위에서는 뒤집는다 */
+.btn-on-ink {
+  background: var(--canvas);
+  border-color: var(--canvas);
+  color: var(--ink);
+}
+
+.btn-on-ink:hover {
+  background: var(--white);
+  border-color: var(--white);
+}
+
+.btn-outline-on-ink {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.5);
+  color: var(--white);
+}
+
+.btn-outline-on-ink:hover {
+  border-color: var(--white);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.btn-quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink);
+  padding: 6px 14px;
+  min-height: 40px;
+}
+
+.btn-quiet:hover {
+  background: rgba(20, 20, 19, 0.05);
+}
+
+/** 원형 위성 버튼 — 원형 요소 곁에 붙어 도는 작은 CTA */
+.satellite {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-circle);
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: var(--e-float);
+  transition: transform var(--ease), background-color var(--ease), color var(--ease);
+}
+
+.satellite:hover {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.satellite:active {
+  transform: var(--press);
+}
+
+/* ── Chips ──────────────────────────────────────────── */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 18px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--white);
+  color: var(--ink);
+  font-size: var(--fs-sm);
+  font-weight: var(--w-mid);
+  letter-spacing: var(--ls-btn);
+  transition: all var(--ease);
+}
+
+.chip:hover {
+  border-color: var(--ink);
+}
+
+.chip:active {
+  transform: var(--press);
+}
+
+.chip.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+/* ── Inputs ─────────────────────────────────────────── */
+
+.field-label {
+  display: block;
+  font-size: var(--fs-sm);
+  font-weight: var(--w-bold);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--slate);
+  margin-bottom: var(--sp-1);
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 14px 24px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-inner);
+  background: var(--white);
+  color: var(--ink);
+  font-size: var(--fs-body);
+  font-weight: var(--w-body);
+  transition: border-color var(--ease);
+}
+
+.input {
+  min-height: 52px;
+  border-radius: var(--r-pill);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--taupe);
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--ink);
+  outline: none;
+}
+
+.textarea {
+  resize: vertical;
+  line-height: var(--lh-body);
+}
+
+.help {
+  font-size: var(--fs-sm);
+  color: var(--slate);
+}
+
+/* ── Cards ──────────────────────────────────────────
+ * 키즈 조정: 카드 모서리를 40px로. 그림자는 넓게 퍼지는 대기 쿠션.
+ */
+
+.card {
+  background: var(--white);
+  border-radius: var(--r-card);
+  padding: var(--sp-4);
+  transition: transform var(--ease-soft), box-shadow var(--ease-soft);
+}
+
+.card-lift {
+  box-shadow: var(--e-card);
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--e-card);
+}
+
+/* ── Layout ─────────────────────────────────────────── */
+
+.container {
+  width: 100%;
+  max-width: var(--w-content);
+  margin: 0 auto;
+  padding-inline: var(--gutter);
+}
+
+/**
+ * 읽기 좋은 폭으로 좁히는 안쪽 래퍼.
+ * .container를 좁히지 않고 그 안에서 좁힌다 —
+ * 그래야 좁은 폼도 다른 페이지와 같은 왼쪽 기준선에서 시작한다.
+ */
+.measure {
+  max-width: var(--w-text);
+}
+
+/* ── 페이지 기본형 ───────────────────────────────────
+ * 모든 화면이 같은 세로 리듬을 쓴다. 손으로 넣은 여백을 섞지 않는다.
+ */
+
+.page {
+  padding-block: var(--sp-5) var(--sp-6);
+}
+
+/* 제목 줄 — 왼쪽 제목, 오른쪽 동작 */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+
+/* 블록과 블록 사이 */
+.block + .block {
+  margin-top: var(--sp-5);
+}
+
+.block-head {
+  margin-bottom: var(--sp-2);
+}
+
+.section {
+  padding-block: var(--section);
+}
+
+/* 세 가지 면으로 페이지 리듬을 만든다 : 캔버스 → 들린 크림 → 잉크 */
+.band-canvas {
+  background: var(--canvas);
+}
+
+.band-lifted {
+  background: var(--lifted);
+}
+
+.band-ink {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
