@@ -1,7 +1,8 @@
 # 잘들어 — 받아쓰기 연습장 기획 구상안 (v1.2)
 
 > 상태: **1차(MVP) 구현 완료.** Q1~Q13 결정 반영. 남은 것은 실물 인쇄 확인.
-> 서비스명 **잘들어** / 배포 후보 `bada.vercel.app` (리포지토리·인프라명 `bada`와 서비스명 분리 — 흔한 구성이라 문제없음. 단 도메인 선점 여부 확인 필요)
+> 서비스명 **잘들어** / 배포 **https://badabada.vercel.app**
+> (리포지토리 `github.com/kimhyunwoooo/bada-web`. 인프라명과 서비스명 분리는 흔한 구성이라 문제없음)
 
 ---
 
@@ -262,7 +263,7 @@ Pretendard는 Light(300)가 있으므로 웨이트를 낮추면 획이 얇아져
 | 저장 | **localStorage** `bada.sheets.v1` | 1차엔 DB 불필요 |
 | URL 압축 | **lz-string** (`compressToEncodedURIComponent`) | 1.5KB, 검증된 라이브러리 |
 | 테스트 | **Vitest** — 칸 파서만 | 나머지는 수동 확인 |
-| 배포 | **Vercel** (`bada.vercel.app`) | 서버 없음 |
+| 배포 | **Vercel** (`badabada.vercel.app`) | 서버 없음 |
 
 **폰트 — ✅Q3 Pretendard 단일**
 - UI·인쇄·칸 글자 전부 Pretendard. 폰트 1종이면 로딩·FOUT 관리가 단순해진다
@@ -376,6 +377,7 @@ localStorage만으로 구현되고 코드도 몇 줄이다. → 1차 후보
 - [x] URL 공유 + QR
 - [x] 칸 크기 / V 표시 / 머리글 옵션
 - [x] 반응형 (모바일 입력·불러주기 → 데스크톱 인쇄)
+- [x] **배포** — https://badabada.vercel.app (SPA 리라이트 실서버 확인 완료)
 - [ ] **실물 프린터 출력 확인** — 칸 크기와 따라 쓰기 회색값 최종 조정
 - [ ] **Safari 인쇄 확인** (Chromium만 검증됨)
 
@@ -431,5 +433,11 @@ localStorage만으로 구현되고 코드도 몇 줄이다. → 1차 후보
 
 1. 실제로 인쇄해서 칸 크기(현재 auto 11.5~15mm)와 따라 쓰기 회색값(`--mark-trace: #c8c8c8`) 확정
 2. Safari 인쇄 확인
-3. 배포 (`bada.vercel.app`) — history 모드이므로 SPA 리라이트 설정 필요
+3. ~~배포~~ ✅ **완료** — https://badabada.vercel.app
+
+   ⚠️ 짧은 이름(`bada`, `bada-web`)은 이미 남이 선점하고 있었다. `*.vercel.app`은
+   전 세계 공용이라 흔한 단어는 대부분 비어 있지 않다.
+   또한 **프로젝트 이름을 바꾸면 기존 자동 URL이 즉시 끊긴다** — 이미 공유한 링크가 있다면
+   이름 대신 Domains에 새 주소를 추가하는 편이 안전하다.
+   도메인을 막 추가한 직후에는 TLS 인증서 발급 전까지 몇 분간 연결이 걸릴 수 있다.
 4. 2차 스펙 논의

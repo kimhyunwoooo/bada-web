@@ -3,6 +3,8 @@
 부모가 받아쓰기 문장을 입력하면 **보고 쓰기 · 따라 쓰기 · 듣고 쓰기** 3종 학습지를
 A4 한 장으로 만들어 인쇄합니다. 로그인·설치·서버 없음.
 
+**https://badabada.vercel.app**
+
 기획 배경과 결정 근거는 [PLAN.md](./PLAN.md), 디자인 토큰은 [DESIGN-mastercard.md](./DESIGN-mastercard.md).
 
 ## 실행
