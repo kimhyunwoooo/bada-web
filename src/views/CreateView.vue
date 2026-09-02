@@ -202,23 +202,24 @@
                 <template v-else>
                     <ol class="rows">
                         <li v-for="(_, i) in texts" :key="i" class="row-item">
-                            <span class="row-no">{{ String(i + 1).padStart(2, '0') }}</span>
-                            <div class="row-main">
+                            <div class="row-top">
+                                <span class="row-no">{{ String(i + 1).padStart(2, '0') }}</span>
                                 <div class="row-input">
                                     <input :ref="el => (inputs[i] = el as HTMLInputElement)" :value="texts[i]" class="input" type="text" :placeholder="i === 0 ? '예: 곰이 그림책을 봅니다.' : '문장을 입력하세요'" @input="onInput(i, $event)" @compositionend="onInput(i, $event)" />
                                     <button v-if="texts.length > MIN_VISIBLE" class="row-remove" :aria-label="`${i + 1}번 문장 지우기`" @click="removeAt(i)">
                                         <Icon name="close" :size="15" />
                                     </button>
                                 </div>
+                            </div>
 
-                                <div v-if="previews[i]" class="preview">
-                                    <CellGrid :lines="previews[i]!.lines" :metrics="previewMetrics" variant="trace" :show-space-mark="true" />
-                                    <p class="preview-meta" :class="{ 'is-warn': previews[i]!.lineCount > 2 }">
-                                        {{ previews[i]!.cells }}칸
-                                        <template v-if="previews[i]!.lineCount > 1"> · {{ previews[i]!.lineCount }}줄 </template>
-                                        <template v-if="previews[i]!.lineCount > 2"> — 문장이 길어 칸이 작아집니다. 나눠 쓰는 편이 좋아요. </template>
-                                    </p>
-                                </div>
+                            <!-- 미리보기는 번호 칸에 맞추지 않고 줄 전체 폭을 쓴다 — 칸이 더 많이 보인다 -->
+                            <div v-if="previews[i]" class="preview">
+                                <CellGrid :lines="previews[i]!.lines" :metrics="previewMetrics" variant="trace" :show-space-mark="true" />
+                                <p class="preview-meta" :class="{ 'is-warn': previews[i]!.lineCount > 2 }">
+                                    {{ previews[i]!.cells }}칸
+                                    <template v-if="previews[i]!.lineCount > 1"> · {{ previews[i]!.lineCount }}줄 </template>
+                                    <template v-if="previews[i]!.lineCount > 2"> — 문장이 길어 칸이 작아집니다. 나눠 쓰는 편이 좋아요. </template>
+                                </p>
                             </div>
                         </li>
                     </ol>
@@ -422,8 +423,14 @@
 
     .row-item {
         display: flex;
+        flex-direction: column;
+        gap: var(--sp-1);
+    }
+
+    .row-top {
+        display: flex;
+        align-items: center;
         gap: var(--sp-2);
-        align-items: flex-start;
     }
 
     .row-no {
@@ -433,7 +440,6 @@
         justify-content: center;
         width: 32px;
         height: 32px;
-        margin-top: 10px;
         border-radius: var(--r-circle);
         background: var(--canvas);
         font-size: var(--fs-xs);
@@ -441,13 +447,10 @@
         color: var(--slate);
     }
 
-    .row-main {
-        flex: 1 1 auto;
-        min-width: 0;
-    }
-
     .row-input {
         position: relative;
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .row-remove {
@@ -470,12 +473,55 @@
         background: var(--canvas);
     }
 
+    /**
+     * 칸 미리보기.
+     *
+     * 종이를 흉내 내는 자리이므로 바탕은 흰색이다 — 캔버스와 같은 색이면 경계가 사라진다.
+     * 넘칠 때 좌우 그림자가 나타나 "더 있다"를 알린다.
+     * 덮개 그라데이션은 내용과 함께 스크롤(local)하고 그림자는 상자에 고정(scroll)이라,
+     * 끝까지 밀면 그쪽 그림자가 덮개에 가려 자동으로 사라진다. 자바스크립트가 필요 없다.
+     */
     .preview {
         margin-top: var(--sp-1);
         padding: var(--sp-2) var(--sp-3);
+        border: 1.5px solid var(--line);
         border-radius: var(--r-inner);
-        background: var(--canvas);
         overflow-x: auto;
+        overscroll-behavior-x: contain;
+
+        background-color: var(--white);
+        background-image:
+            linear-gradient(to right, var(--white) 40%, rgba(255, 255, 255, 0)),
+            linear-gradient(to left, var(--white) 40%, rgba(255, 255, 255, 0)),
+            radial-gradient(farthest-side at 0 50%, rgba(20, 20, 19, 0.16), rgba(20, 20, 19, 0)),
+            radial-gradient(farthest-side at 100% 50%, rgba(20, 20, 19, 0.16), rgba(20, 20, 19, 0));
+        background-position: left center, right center, left center, right center;
+        background-repeat: no-repeat;
+        background-size: 48px 100%, 48px 100%, 16px 100%, 16px 100%;
+        background-attachment: local, local, scroll, scroll;
+    }
+
+    /* 그림자만으로는 약하다. 얇은 스크롤바를 함께 남겨 둔다 */
+    .preview {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line) transparent;
+    }
+
+    .preview::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .preview::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .preview::-webkit-scrollbar-thumb {
+        background: var(--line);
+        border-radius: var(--r-pill);
+    }
+
+    .preview:hover::-webkit-scrollbar-thumb {
+        background: var(--taupe);
     }
 
     .preview-meta {

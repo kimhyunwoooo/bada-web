@@ -29,6 +29,7 @@ export type IconName =
   | 'diamond'
   | 'grid'
   | 'ruler'
+  | 'trash'
 
 const PATHS: Record<IconName, string> = {
   // 보고 쓰기
@@ -60,6 +61,8 @@ const PATHS: Record<IconName, string> = {
   // 금색 작은 강조 표식 (배지 대신)
   diamond: '<path d="M12 3.5 16.5 12 12 20.5 7.5 12Z"/>',
   grid: '<path d="M3.5 4.5h7v7h-7Z"/><path d="M13.5 4.5h7v7h-7Z"/><path d="M3.5 14.5h7v5h-7Z"/><path d="M13.5 14.5h7v5h-7Z"/>',
+  trash:
+    '<path d="M4 6.5h16"/><path d="M9.5 6.5V4.5h5v2"/><path d="M6.5 6.5 7.5 20a1 1 0 0 0 1 1h7a1 1 0 0 0 1-1l1-13.5"/><path d="M10 10.5v6.5"/><path d="M14 10.5v6.5"/>',
   // 칸 크기를 맞추는 동작
   ruler:
     '<path d="M3.5 8.5h17v7h-17Z"/><path d="M7 8.5v3"/><path d="M10.5 8.5v4.5"/><path d="M14 8.5v3"/><path d="M17.5 8.5v4.5"/>',

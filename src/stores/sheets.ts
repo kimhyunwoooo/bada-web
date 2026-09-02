@@ -77,6 +77,8 @@ export const useSheetStore = defineStore('sheets', () => {
 
   async function remove(id: string): Promise<void> {
     await sheetRepository.remove(id)
+    // 지운 세트가 current에 남아 있으면 이후 화면이 유령 세트를 편집하게 된다
+    if (current.value.id === id) startNew()
     await loadAll()
   }
 

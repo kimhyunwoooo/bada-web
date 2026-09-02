@@ -238,6 +238,18 @@ a {
   background: rgba(255, 255, 255, 0.1);
 }
 
+/* 되돌릴 수 없는 동작. 확인 단계에서만 쓴다 */
+.btn-danger {
+  background: var(--error);
+  border-color: var(--error);
+  color: var(--white);
+}
+
+.btn-danger:hover {
+  background: #a81a10;
+  border-color: #a81a10;
+}
+
 .btn-quiet {
   background: transparent;
   border-color: transparent;

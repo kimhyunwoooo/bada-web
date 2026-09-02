@@ -52,6 +52,25 @@ function duplicate() {
   store.duplicate(set.value)
   router.push({ name: 'create' })
 }
+
+/**
+ * 삭제는 되돌릴 수 없다 (브라우저 저장소에만 있고 휴지통이 없다).
+ * 그래서 한 번 더 묻는다 — 대화상자를 띄우는 대신 버튼 자리에서 바로 확인받는다.
+ */
+const confirmingDelete = ref(false)
+
+function askDelete() {
+  confirmingDelete.value = true
+}
+
+function cancelDelete() {
+  confirmingDelete.value = false
+}
+
+async function remove() {
+  await store.remove(set.value.id)
+  router.replace({ name: 'intro' })
+}
 </script>
 
 <template>
@@ -66,14 +85,29 @@ function duplicate() {
           <p class="t-lead t-muted">문장 {{ set.sentences.length }}개</p>
         </div>
         <div class="row head-actions">
-          <button class="btn btn-outline btn-sm" @click="edit">
-            <Icon name="pen" :size="15" />
-            문장 수정
-          </button>
-          <button class="btn btn-outline btn-sm" @click="duplicate">
-            <Icon name="copy" :size="15" />
-            복제
-          </button>
+          <template v-if="confirmingDelete">
+            <span class="confirm-ask t-sm">이 받아쓰기를 지울까요?</span>
+            <button class="btn btn-danger btn-sm" @click="remove">
+              <Icon name="trash" :size="15" />
+              삭제
+            </button>
+            <button class="btn btn-outline btn-sm" @click="cancelDelete">취소</button>
+          </template>
+
+          <template v-else>
+            <button class="btn btn-outline btn-sm" @click="edit">
+              <Icon name="pen" :size="15" />
+              문장 수정
+            </button>
+            <button class="btn btn-outline btn-sm" @click="duplicate">
+              <Icon name="copy" :size="15" />
+              복제
+            </button>
+            <button class="btn btn-quiet btn-sm delete-btn" @click="askDelete">
+              <Icon name="trash" :size="15" />
+              삭제
+            </button>
+          </template>
         </div>
       </header>
 
@@ -174,6 +208,21 @@ function duplicate() {
 
 .head-actions {
   gap: var(--sp-1);
+}
+
+/* 삭제는 되돌릴 수 없으니 평소에는 눈에 덜 띄게 둔다 */
+.delete-btn {
+  color: var(--slate);
+}
+
+.delete-btn:hover {
+  color: var(--error);
+  background: rgba(200, 32, 20, 0.06);
+}
+
+.confirm-ask {
+  color: var(--error);
+  font-weight: var(--w-mid);
 }
 
 /* ── 카드 ───────────────────────────────────────────── */
