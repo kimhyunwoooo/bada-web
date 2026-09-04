@@ -6,7 +6,9 @@ import Icon from './components/Icon.vue'
 const route = useRoute()
 
 /** 인쇄 미리보기와 불러주기 화면은 전체 화면을 쓴다 */
-const bare = computed(() => route.name === 'sheet' || route.name === 'read')
+const bare = computed(() =>
+  ['sheet', 'read', 'blank'].includes(String(route.name)),
+)
 
 /** 입력 화면에서는 자기 자신으로 가는 버튼이라 숨긴다 */
 const showNavCta = computed(() => route.name !== 'create')

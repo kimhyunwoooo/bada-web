@@ -46,10 +46,17 @@ async function openSaved(id: string) {
     <div class="container">
       <header class="page-head">
         <h1 class="t-h1">받아쓰기 만들기</h1>
-        <button class="btn btn-ink btn-lg" @click="startNew">
-          <Icon name="pen" :size="18" />
-          새로 만들기
-        </button>
+        <div class="row head-actions">
+          <!-- 문장이 필요 없는 양식이라 입력을 거치지 않고 바로 간다 -->
+          <RouterLink to="/blank" class="btn btn-outline btn-lg">
+            <Icon name="grid" :size="18" />
+            빈 시험지
+          </RouterLink>
+          <button class="btn btn-ink btn-lg" @click="startNew">
+            <Icon name="pen" :size="18" />
+            새로 만들기
+          </button>
+        </div>
       </header>
 
       <p v-if="linkError" class="link-error t-sm">

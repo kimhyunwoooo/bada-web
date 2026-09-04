@@ -21,6 +21,12 @@ const router = createRouter({
       component: () => import('../views/SheetView.vue'),
     },
     {
+      // 문장 없이 바로 뽑는 빈 시험지
+      path: '/blank',
+      name: 'blank',
+      component: () => import('../views/BlankView.vue'),
+    },
+    {
       // QR·공유 링크는 /read?s=... 로도 들어온다 (PLAN §8.1)
       path: '/read/:id?',
       name: 'read',

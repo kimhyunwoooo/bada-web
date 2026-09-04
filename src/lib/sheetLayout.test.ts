@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   availableHeightMm,
   buildAutoLayout,
+  buildBlankLayout,
   buildLayout,
   buildMetrics,
   layoutSentence,
@@ -160,5 +161,57 @@ describe('세로 공간 계산', () => {
     const layout = buildAutoLayout([], 'listen', opts())
     expect(layout.items).toHaveLength(0)
     expect(layout.pageCount).toBe(1)
+  })
+})
+
+describe('빈 시험지 (문장 없는 양식)', () => {
+  it('언제나 10문항을 만든다', () => {
+    expect(buildBlankLayout(10, 10, 'grid', opts()).items).toHaveLength(10)
+  })
+
+  it('칸 시험지는 한 줄에 요청한 칸 수를 정확히 놓는다', () => {
+    for (const cells of [8, 10, 12, 14]) {
+      const layout = buildBlankLayout(10, cells, 'grid', opts())
+      for (const item of layout.items) {
+        const count = item.lines[0].reduce((n, w) => n + w.cells.length, 0)
+        expect(count).toBe(cells)
+      }
+    }
+  })
+
+  it('칸이 용지 폭을 넘지 않는다', () => {
+    for (const cells of [8, 10, 12, 14]) {
+      const { metrics } = buildBlankLayout(10, cells, 'grid', opts())
+      const used = cells * metrics.cellMm + (cells - 1) * metrics.cellGapMm
+      expect(used).toBeLessThanOrEqual(metrics.cellsWidthMm + 0.01)
+    }
+  })
+
+  it('줄 시험지는 칸을 만들지 않는다', () => {
+    const layout = buildBlankLayout(10, 10, 'line', opts())
+    expect(layout.items.every((item) => item.lines.length === 0)).toBe(true)
+  })
+
+  it('칸이 많아지면 칸이 작아진다 — 가로 제약', () => {
+    const wide = buildBlankLayout(10, 8, 'grid', opts()).metrics.cellMm
+    const narrow = buildBlankLayout(10, 14, 'grid', opts()).metrics.cellMm
+    expect(wide).toBeGreaterThan(narrow)
+  })
+
+  it('모든 조합이 A4 한 장에 들어간다', () => {
+    for (const kind of ['grid', 'line'] as const) {
+      for (const rows of [10]) {
+        for (const cells of [8, 10, 12, 14]) {
+          const layout = buildBlankLayout(rows, cells, kind, opts())
+          expect(layout.pageCount).toBe(1)
+          for (const page of layout.pages) {
+            const used =
+              page.items.reduce((sum, item) => sum + item.heightMm, 0) +
+              Math.max(0, page.items.length - 1) * page.itemGapMm
+            expect(used).toBeLessThanOrEqual(layout.availableHeightMm + 0.01)
+          }
+        }
+      }
+    }
   })
 })

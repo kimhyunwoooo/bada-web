@@ -36,6 +36,34 @@ export const SHEET_TYPES: SheetType[] = ['see', 'trace', 'listen']
 
 export const GRADES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
+/**
+ * 빈 시험지 종류.
+ * 연습용 3종과 달리 문장이 필요 없다 — 부모가 불러 주고 아이가 받아 적는 실제 시험용이다.
+ */
+export type BlankKind = 'grid' | 'line'
+
+export const BLANK_KINDS: BlankKind[] = ['grid', 'line']
+
+export const BLANK_META: Record<
+  BlankKind,
+  { name: string; short: string; desc: string; guide: string; icon: 'grid' | 'rows' }
+> = {
+  grid: {
+    name: '칸 시험지',
+    short: '칸',
+    desc: '한 줄에 네모 칸이 쳐져 있습니다. 한 글자씩 또박또박 쓰기 좋아요.',
+    guide: '잘 듣고 한 칸에 한 글자씩 또박또박 써 보세요.',
+    icon: 'grid',
+  },
+  line: {
+    name: '줄 시험지',
+    short: '줄',
+    desc: '한 줄에 밑줄만 있습니다. 칸에 얽매이지 않고 길게 쓸 수 있어요.',
+    guide: '잘 듣고 줄 위에 또박또박 써 보세요.',
+    icon: 'rows',
+  },
+}
+
 export const SHEET_META: Record<
   SheetType,
   {

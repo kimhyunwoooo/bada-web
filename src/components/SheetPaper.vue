@@ -2,13 +2,15 @@
 import { computed } from 'vue'
 import CellGrid from './CellGrid.vue'
 import { PAGE, type SheetLayout, type SheetPage } from '../lib/sheetLayout'
-import { SHEET_META, type SheetOptions, type SheetType } from '../types'
+import { BLANK_META, SHEET_META, type BlankKind, type SheetOptions, type SheetType } from '../types'
 
 /** A4 한 장. 화면 미리보기와 인쇄가 같은 컴포넌트를 쓴다 */
 const props = defineProps<{
   title: string
   grade: number | null
   type: SheetType
+  /** 빈 시험지 모드. 주면 문장 대신 빈 칸/빈 줄을 그린다 */
+  blank?: BlankKind
   layout: SheetLayout
   options: SheetOptions
   page: SheetPage
@@ -16,7 +18,7 @@ const props = defineProps<{
   pageCount: number
 }>()
 
-const meta = computed(() => SHEET_META[props.type])
+const meta = computed(() => (props.blank ? BLANK_META[props.blank] : SHEET_META[props.type]))
 </script>
 
 <template>
@@ -32,6 +34,7 @@ const meta = computed(() => SHEET_META[props.type])
       '--title-h': `${PAGE.titleMm}mm`,
       '--header-h': `${PAGE.headerMm}mm`,
       '--guide-h': `${PAGE.guideMm}mm`,
+      '--cell': `${layout.metrics.cellMm}mm`,
     }"
   >
     <header class="paper-title">
@@ -49,18 +52,34 @@ const meta = computed(() => SHEET_META[props.type])
 
     <p class="paper-guide">
       <b>★</b> {{ meta.guide }}
-      <template v-if="options.showSpaceMark">
+      <template v-if="!blank && options.showSpaceMark">
         네모 칸 사이의 <b class="v">∨</b> 는 띄어쓰기예요.
       </template>
-      문장부호(. , ! ?)도 한 칸에 써 주세요.
+      <template v-if="blank !== 'line'">문장부호(. , ! ?)도 한 칸에 써 주세요.</template>
     </p>
 
     <ol class="paper-items">
-      <li v-for="item in page.items" :key="item.index" class="sheet-item">
+      <li
+        v-for="item in page.items"
+        :key="item.index"
+        class="sheet-item"
+        :class="{ 'is-rule': blank === 'line' }"
+      >
         <span class="no">{{ item.index }}</span>
         <div class="rows">
+          <!-- 빈 시험지: 문장이 없으므로 빈 줄만 그린다 -->
+          <span v-if="blank === 'line'" class="blank-rule"></span>
+
+          <CellGrid
+            v-else-if="blank === 'grid'"
+            :lines="item.lines"
+            :metrics="layout.metrics"
+            variant="empty"
+            :show-space-mark="false"
+          />
+
           <!-- 보고 쓰기: 답안 줄이 쓰기 줄 위에 얹힌다 -->
-          <template v-if="type === 'see'">
+          <template v-else-if="type === 'see'">
             <div v-for="(line, li) in item.lines" :key="li" class="see-line">
               <CellGrid
                 :lines="[line]"
@@ -233,5 +252,22 @@ const meta = computed(() => SHEET_META[props.type])
 
 .see-line + .see-line {
   margin-top: 2.5mm;
+}
+
+/* 줄 시험지 — 칸 높이만큼 자리를 잡고 바닥에 선을 긋는다 */
+.blank-rule {
+  display: block;
+  height: var(--cell);
+  border-bottom: 0.35mm solid #1a1a1a;
+}
+
+/* 번호를 줄에 붙인다. 위에 떠 있으면 어느 줄의 번호인지 헷갈린다 */
+.sheet-item.is-rule {
+  align-items: flex-end;
+}
+
+.sheet-item.is-rule .no {
+  line-height: 1;
+  padding-bottom: 1.2mm;
 }
 </style>

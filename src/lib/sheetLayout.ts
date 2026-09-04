@@ -7,7 +7,7 @@
  */
 
 import { parseSentence, type ParsedWord } from './gridParser'
-import type { CellSize, SheetOptions, SheetType } from '../types'
+import type { BlankKind, CellSize, SheetOptions, SheetType } from '../types'
 
 /** A4 세로 및 블록 높이 (mm) */
 export const PAGE = {
@@ -302,4 +302,87 @@ function round(n: number): number {
 
 function floor2(n: number): number {
   return Math.floor(n * 100) / 100
+}
+
+
+/* ────────────────────────────────────────────────────────
+ * 빈 시험지 (문장 없는 양식)
+ *
+ * 연습용 3종은 문장에서 칸 수가 나오지만, 시험지는 그 반대다 —
+ * 칸 수를 먼저 정하고 그 안에 아이가 받아 적는다.
+ * 페이지 분할·여백 분배는 같은 함수를 그대로 쓴다.
+ * ──────────────────────────────────────────────────────── */
+
+/**
+ * 시험지는 언제나 10문항이다 — 받아쓰기 급수표가 10문항 단위이므로
+ * 고를 이유가 없다. 엔진은 값을 받지만 화면에서는 이 상수만 쓴다.
+ */
+export const BLANK_ROW_COUNT = 10
+export const BLANK_CELL_COUNTS = [8, 10, 12, 14]
+
+/** 시험지는 칸이 커야 쓰기 편하다. 연습용보다 상한을 조금 올린다 */
+const BLANK_MAX_MM = 18
+
+
+function blankItems(rowCount: number, cellsPerRow: number, kind: BlankKind, cellMm: number) {
+  const cells = Array.from({ length: cellsPerRow }, () => '')
+  return Array.from({ length: rowCount }, (_, i) => ({
+    index: i + 1,
+    text: '',
+    // 줄 시험지는 칸이 없으므로 빈 줄만 둔다 (SheetPaper가 밑줄로 그린다)
+    lines: kind === 'grid' ? [[{ cells, trailingSpace: false }]] : [],
+    heightMm: cellMm,
+  }))
+}
+
+/** 칸 n개가 용지 폭에 들어가는 최대 칸 크기 */
+function widthLimitMm(cellsPerRow: number, m: SheetMetrics): number {
+  if (cellsPerRow < 1) return BLANK_MAX_MM
+  return (m.cellsWidthMm - (cellsPerRow - 1) * m.cellGapMm) / cellsPerRow
+}
+
+export function buildBlankLayout(
+  rowCount: number,
+  cellsPerRow: number,
+  kind: BlankKind,
+  options: SheetOptions,
+): SheetLayout {
+  const available = availableHeightMm(options)
+
+  // 세로(문항 수)와 가로(칸 수) 양쪽에 들어가는 가장 큰 칸을 고른다
+  let cellMm = AUTO_MIN_MM
+  if (options.cellSize !== 'auto') {
+    cellMm = FIXED_CELL_MM[options.cellSize]
+  } else {
+    for (let mm = BLANK_MAX_MM; mm >= AUTO_MIN_MM; mm -= AUTO_STEP_MM) {
+      const probe = buildMetrics(round(mm))
+      if (kind === 'grid' && mm > widthLimitMm(cellsPerRow, probe) + EPSILON) continue
+      const total = rowCount * mm + Math.max(0, rowCount - 1) * probe.itemGapMm
+      if (total <= available + EPSILON) {
+        cellMm = round(mm)
+        break
+      }
+    }
+  }
+
+  const metrics = buildMetrics(cellMm)
+  const items = blankItems(rowCount, cellsPerRow, kind, cellMm)
+  const totalHeightMm =
+    items.reduce((sum, item) => sum + item.heightMm, 0) +
+    Math.max(0, items.length - 1) * metrics.itemGapMm
+
+  const pages: SheetPage[] = paginate(items, available, metrics.itemGapMm).map((pageItems) => ({
+    items: pageItems,
+    itemGapMm: fitGapMm(pageItems, available, metrics.itemGapMm),
+  }))
+
+  return {
+    metrics,
+    items,
+    pages,
+    totalHeightMm,
+    availableHeightMm: available,
+    itemGapMm: pages[0]?.itemGapMm ?? metrics.itemGapMm,
+    pageCount: Math.max(1, pages.length),
+  }
 }
