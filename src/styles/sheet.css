@@ -199,11 +199,18 @@
 
 /* ── 떠 있는 인쇄 버튼 ──────────────────────────────── */
 
-.fab {
+/* 두 버튼을 한 덩어리로 띄운다 — 인쇄가 주, PDF가 보조 */
+.fab-group {
   position: fixed;
   right: var(--gutter);
   bottom: var(--sp-3);
   z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.fab {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-1);
@@ -231,6 +238,33 @@
 .fab[disabled] {
   opacity: 0.5;
   pointer-events: none;
+}
+
+/* 보조 버튼 — 인쇄가 여전히 주 동작이므로 무게를 낮춘다 */
+.fab-minor {
+  height: 48px;
+  padding: 0 20px;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  font-size: var(--fs-sm);
+}
+
+.fab-minor:hover {
+  background: var(--cream);
+}
+
+/* 좁은 화면에서는 보조 버튼의 글자를 접고 아이콘만 남긴다 */
+@media (max-width: 480px) {
+  .fab {
+    height: 50px;
+    padding: 0 20px;
+  }
+
+  .fab-minor {
+    height: 44px;
+    padding: 0 14px;
+  }
 }
 
 @media print {

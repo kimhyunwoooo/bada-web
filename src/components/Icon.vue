@@ -13,6 +13,7 @@ export type IconName =
   | 'pen'
   | 'volume'
   | 'printer'
+  | 'download'
   | 'link'
   | 'qr'
   | 'clipboard'
@@ -41,6 +42,8 @@ const PATHS: Record<IconName, string> = {
     '<path d="M11 5 6.5 9H3.5v6h3L11 19Z"/><path d="M15 9.5a3.5 3.5 0 0 1 0 5"/><path d="M17.8 6.5a7.5 7.5 0 0 1 0 11"/>',
   printer:
     '<path d="M7 9V3.5h10V9"/><path d="M7 18.5H4.5A1.5 1.5 0 0 1 3 17v-5.5A1.5 1.5 0 0 1 4.5 10h15a1.5 1.5 0 0 1 1.5 1.5V17a1.5 1.5 0 0 1-1.5 1.5H17"/><path d="M7 14.5h10v6H7Z"/>',
+  download:
+    '<path d="M12 3.5v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4 16.5V19a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-2.5"/>',
   link: '<path d="M10.5 13.5a4.5 4.5 0 0 0 6.8.5l2.5-2.5a4.5 4.5 0 0 0-6.4-6.4l-1.4 1.4"/><path d="M13.5 10.5a4.5 4.5 0 0 0-6.8-.5l-2.5 2.5a4.5 4.5 0 0 0 6.4 6.4l1.4-1.4"/>',
   qr: '<path d="M3.5 3.5h6v6h-6Z"/><path d="M14.5 3.5h6v6h-6Z"/><path d="M3.5 14.5h6v6h-6Z"/><path d="M14.5 14.5h2.5v2.5h-2.5Z"/><path d="M18 18h2.5v2.5H18Z"/>',
   // 여러 문장 붙여넣기

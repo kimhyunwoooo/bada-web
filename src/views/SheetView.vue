@@ -2,7 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '../components/Icon.vue'
-import { detectInApp, openInExternalBrowser } from '../lib/browser'
+import { detectInApp, openInExternalBrowser, saveBlob } from '../lib/browser'
+import { buildPdf, pdfFilename } from '../lib/pdf'
 import PaperStage from '../components/PaperStage.vue'
 import SheetPaper from '../components/SheetPaper.vue'
 import { useSheetStore } from '../stores/sheets'
@@ -15,6 +16,7 @@ const store = useSheetStore()
 
 const ready = ref(false)
 const printing = ref(false)
+const saving = ref(false)
 const inApp = ref(detectInApp())
 
 const CELL_SIZES: { value: CellSize; label: string }[] = [
@@ -69,9 +71,9 @@ function toggleSpaceMark() {
  * Pretendard는 dynamic subset이라 첫 인쇄에서 특히 그렇다.
  */
 async function print() {
-  // 인앱 브라우저에서는 print()가 조용히 무시된다. 바깥 브라우저로 보낸다
+  // 인앱 브라우저에서는 print()가 조용히 무시된다. 대신 PDF로 내려받게 한다
   if (inApp.value) {
-    openInExternalBrowser()
+    await savePdf()
     return
   }
 
@@ -81,6 +83,27 @@ async function print() {
     window.print()
   } finally {
     printing.value = false
+  }
+}
+
+/**
+ * PDF로 저장.
+ * 인쇄가 막힌 환경의 탈출구이자, 파일로 받아 두었다가 다른 곳에서
+ * 뽑고 싶을 때(회사 프린터 등) 쓰는 길이기도 하다.
+ */
+async function savePdf() {
+  saving.value = true
+  try {
+    const blob = await buildPdf({
+      title: set.value.title,
+      grade: set.value.grade,
+      type: type.value,
+      layout: layout.value,
+      options: options.value,
+    })
+    saveBlob(blob, pdfFilename(set.value.title, SHEET_META[type.value].name))
+  } finally {
+    saving.value = false
   }
 }
 </script>
@@ -142,11 +165,12 @@ async function print() {
     <!-- 인앱 브라우저는 window.print()를 무시한다. 눌러도 반응이 없으니 미리 안내한다 -->
     <div v-if="inApp" class="inapp-note no-print">
       <div class="container inapp-inner">
-        <Icon name="printer" :size="17" />
-        <p class="t-sm">
-          지금 브라우저에서는 인쇄가 되지 않습니다. 크롬·사파리로 열어 주세요.
-        </p>
-        <button class="btn btn-ink btn-sm" @click="openInExternalBrowser()">
+        <Icon name="download" :size="17" />
+        <p class="t-sm">지금 브라우저에서는 인쇄가 되지 않습니다. PDF로 저장해 주세요.</p>
+        <button class="btn btn-ink btn-sm" :disabled="saving" @click="savePdf()">
+          {{ saving ? '만드는 중…' : 'PDF 저장' }}
+        </button>
+        <button class="btn btn-ghost btn-sm" @click="openInExternalBrowser()">
           브라우저로 열기
         </button>
       </div>
@@ -183,9 +207,15 @@ async function print() {
     </div>
 
     <!-- 떠 있는 인쇄 버튼 — 이 시스템의 서명 요소. 어디까지 스크롤해도 따라온다 -->
-    <button class="fab no-print" :disabled="printing" @click="print">
-      <Icon name="printer" :size="20" />
-      <span>인쇄</span>
-    </button>
+    <div class="fab-group no-print">
+      <button class="fab fab-minor" :disabled="saving" @click="savePdf">
+        <Icon name="download" :size="18" />
+        <span>{{ saving ? '만드는 중…' : 'PDF' }}</span>
+      </button>
+      <button class="fab" :disabled="printing" @click="print">
+        <Icon name="printer" :size="20" />
+        <span>인쇄</span>
+      </button>
+    </div>
   </div>
 </template>

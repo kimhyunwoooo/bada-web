@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import Icon from '../components/Icon.vue'
-import { detectInApp, openInExternalBrowser } from '../lib/browser'
+import { detectInApp, openInExternalBrowser, saveBlob } from '../lib/browser'
+import { buildPdf, pdfFilename } from '../lib/pdf'
 import PaperStage from '../components/PaperStage.vue'
 import SheetPaper from '../components/SheetPaper.vue'
 import { BLANK_CELL_COUNTS, BLANK_ROW_COUNT, buildBlankLayout } from '../lib/sheetLayout'
@@ -20,6 +21,7 @@ const router = useRouter()
 const kind = ref<BlankKind>('grid')
 const cellCount = ref(10)
 const printing = ref(false)
+const saving = ref(false)
 const inApp = ref(detectInApp())
 
 /** 시험지는 이름·날짜·점수 칸이 항상 필요하다 */
@@ -30,9 +32,9 @@ const layout = computed(() =>
 )
 
 async function print() {
-  // 인앱 브라우저에서는 print()가 조용히 무시된다. 바깥 브라우저로 보낸다
+  // 인앱 브라우저에서는 print()가 조용히 무시된다. 대신 PDF로 내려받게 한다
   if (inApp.value) {
-    openInExternalBrowser()
+    await savePdf()
     return
   }
 
@@ -42,6 +44,23 @@ async function print() {
     window.print()
   } finally {
     printing.value = false
+  }
+}
+
+async function savePdf() {
+  saving.value = true
+  try {
+    const blob = await buildPdf({
+      title: todayTitle(),
+      grade: null,
+      type: 'listen',
+      blank: kind.value,
+      layout: layout.value,
+      options: options.value,
+    })
+    saveBlob(blob, pdfFilename(todayTitle(), BLANK_META[kind.value].name))
+  } finally {
+    saving.value = false
   }
 }
 </script>
@@ -91,11 +110,12 @@ async function print() {
     <!-- 인앱 브라우저는 window.print()를 무시한다. 눌러도 반응이 없으니 미리 안내한다 -->
     <div v-if="inApp" class="inapp-note no-print">
       <div class="container inapp-inner">
-        <Icon name="printer" :size="17" />
-        <p class="t-sm">
-          지금 브라우저에서는 인쇄가 되지 않습니다. 크롬·사파리로 열어 주세요.
-        </p>
-        <button class="btn btn-ink btn-sm" @click="openInExternalBrowser()">
+        <Icon name="download" :size="17" />
+        <p class="t-sm">지금 브라우저에서는 인쇄가 되지 않습니다. PDF로 저장해 주세요.</p>
+        <button class="btn btn-ink btn-sm" :disabled="saving" @click="savePdf()">
+          {{ saving ? '만드는 중…' : 'PDF 저장' }}
+        </button>
+        <button class="btn btn-ghost btn-sm" @click="openInExternalBrowser()">
           브라우저로 열기
         </button>
       </div>
@@ -132,9 +152,15 @@ async function print() {
       </PaperStage>
     </div>
 
-    <button class="fab no-print" :disabled="printing" @click="print">
-      <Icon name="printer" :size="20" />
-      <span>인쇄</span>
-    </button>
+    <div class="fab-group no-print">
+      <button class="fab fab-minor" :disabled="saving" @click="savePdf">
+        <Icon name="download" :size="18" />
+        <span>{{ saving ? '만드는 중…' : 'PDF' }}</span>
+      </button>
+      <button class="fab" :disabled="printing" @click="print">
+        <Icon name="printer" :size="20" />
+        <span>인쇄</span>
+      </button>
+    </div>
   </div>
 </template>
