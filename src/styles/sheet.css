@@ -245,3 +245,31 @@
     max-width: none;
   }
 }
+
+
+/* ── 인앱 브라우저 안내 ─────────────────────────────── */
+
+.inapp-note {
+  background: var(--accent-wash);
+  border-bottom: 1px solid rgba(154, 58, 10, 0.15);
+  color: var(--clay);
+}
+
+.inapp-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-block: var(--sp-1);
+  flex-wrap: wrap;
+}
+
+.inapp-inner p {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .inapp-inner .btn {
+    width: 100%;
+  }
+}

@@ -17,8 +17,8 @@ interface SharePayload {
   /** 급수. 고르지 않았으면 0 */
   g: number
   s: string[]
-  /** [칸 크기 인덱스, V 표시, 머리글] */
-  o: [number, 0 | 1, 0 | 1]
+  /** [칸 크기 인덱스, V 표시]. 옛 링크에는 머리글 자리가 하나 더 있으나 무시한다 */
+  o: [number, 0 | 1]
 }
 
 export function encodeShare(set: SheetSet): string {
@@ -30,7 +30,6 @@ export function encodeShare(set: SheetSet): string {
     o: [
       Math.max(0, CELL_SIZES.indexOf(set.options.cellSize)),
       set.options.showSpaceMark ? 1 : 0,
-      set.options.showHeader ? 1 : 0,
     ],
   }
   return compressToEncodedURIComponent(JSON.stringify(payload))
@@ -52,10 +51,9 @@ export function decodeShare(encoded: string): SheetSet | null {
 
     const options = createDefaultOptions()
     if (Array.isArray(payload.o)) {
-      const [size, space, header] = payload.o
+      const [size, space] = payload.o
       options.cellSize = CELL_SIZES[size] ?? 'auto'
       options.showSpaceMark = space !== 0
-      options.showHeader = header !== 0
     }
 
     const now = Date.now()

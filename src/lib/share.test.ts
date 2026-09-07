@@ -41,7 +41,6 @@ describe('URL 공유 (Q4)', () => {
     const restored = decodeShare(encodeShare(sample))!
     expect(restored.options.cellSize).toBe('lg')
     expect(restored.options.showSpaceMark).toBe(false)
-    expect(restored.options.showHeader).toBe(true)
   })
 
   it('받는 쪽에서는 새 ID를 받는다 — 남의 세트를 덮어쓰지 않게', () => {

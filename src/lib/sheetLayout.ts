@@ -13,15 +13,14 @@ import type { BlankKind, CellSize, SheetOptions, SheetType } from '../types'
 export const PAGE = {
   widthMm: 210,
   heightMm: 297,
-  marginMm: 12,
+  /** 실물 인쇄에서 칸이 작다는 피드백을 받아 12 → 8로 줄였다 */
+  marginMm: 8,
   /** 문항 번호 열 */
-  numberColMm: 9,
+  numberColMm: 8,
   /** 제목 블록 */
-  titleMm: 12,
-  /** 이름/날짜/점수 머리글 */
-  headerMm: 13,
+  titleMm: 11,
   /** 안내 문구 블록 */
-  guideMm: 9,
+  guideMm: 8,
 } as const
 
 const CELL_GAP_MM = 1.2
@@ -38,15 +37,19 @@ const FIXED_CELL_MM: Record<Exclude<CellSize, 'auto'>, number> = {
   lg: 14,
 }
 
-const AUTO_MAX_MM = 15
+/**
+ * 실물 인쇄 결과 칸이 작다는 피드백을 받아 상한을 15 → 20으로 올렸다.
+ * 칸을 키우면 한 줄에 들어가는 칸 수가 줄어 문장이 두 줄이 될 수 있는데,
+ * auto 계산이 후보 크기마다 실제 줄 수를 세므로 넘치는 크기는 알아서 걸러진다.
+ */
+const AUTO_MAX_MM = 20
 const AUTO_MIN_MM = 8
 const AUTO_STEP_MM = 0.5
 /**
- * 칸을 무한정 키우지 않는다. 첨부 학습지도 칸은 12~14mm 선을 지키고
- * 남는 세로 공간은 문항 사이 여백으로 흘려보낸다. 칸만 키우면 저학년 손 크기에 비해
- * 과하게 커지고, 한 줄에 들어가는 칸 수가 줄어 문장이 불필요하게 두 줄이 된다.
+ * 남는 세로 공간이 전부 간격으로 흘러가면 칸이 커질 자리가 없다.
+ * 상한을 낮춰 여유를 칸 쪽으로 먼저 보낸다.
  */
-const MAX_ITEM_GAP_MM = 16
+const MAX_ITEM_GAP_MM = 9
 const EPSILON = 0.001
 
 export interface SheetMetrics {
@@ -152,15 +155,12 @@ export function itemHeightMm(lineCount: number, type: SheetType, m: SheetMetrics
   return lineCount * perLine + Math.max(0, lineCount - 1) * m.lineGapMm
 }
 
-/** 문항들이 놓일 수 있는 세로 공간 */
-export function availableHeightMm(options: SheetOptions): number {
-  return (
-    PAGE.heightMm -
-    PAGE.marginMm * 2 -
-    PAGE.titleMm -
-    (options.showHeader ? PAGE.headerMm : 0) -
-    PAGE.guideMm
-  )
+/**
+ * 문항들이 놓일 수 있는 세로 공간.
+ * 이름·날짜·점수 머리글은 제거했다 — 실제로 쓰이지 않아 칸 자리만 먹었다.
+ */
+export function availableHeightMm(): number {
+  return PAGE.heightMm - PAGE.marginMm * 2 - PAGE.titleMm - PAGE.guideMm
 }
 
 export interface LayoutItem {
@@ -250,7 +250,7 @@ export function buildLayout(
     items.reduce((sum, item) => sum + item.heightMm, 0) +
     Math.max(0, items.length - 1) * metrics.itemGapMm
 
-  const available = availableHeightMm(options)
+  const available = availableHeightMm()
   const pages: SheetPage[] = paginate(items, available, metrics.itemGapMm).map((pageItems) => ({
     items: pageItems,
     itemGapMm: fitGapMm(pageItems, available, metrics.itemGapMm),
@@ -280,7 +280,7 @@ export function resolveCellMm(
   if (options.cellSize !== 'auto') return FIXED_CELL_MM[options.cellSize]
   if (texts.length === 0) return FIXED_CELL_MM.md
 
-  const available = availableHeightMm(options)
+  const available = availableHeightMm()
   for (let mm = AUTO_MAX_MM; mm >= AUTO_MIN_MM; mm -= AUTO_STEP_MM) {
     const layout = buildLayout(texts, type, options, round(mm))
     if (layout.totalHeightMm <= available + EPSILON) return round(mm)
@@ -321,7 +321,14 @@ export const BLANK_ROW_COUNT = 10
 export const BLANK_CELL_COUNTS = [8, 10, 12, 14]
 
 /** 시험지는 칸이 커야 쓰기 편하다. 연습용보다 상한을 조금 올린다 */
-const BLANK_MAX_MM = 18
+const BLANK_MAX_MM = 22
+
+/**
+ * 시험지 칸은 원고지처럼 맞붙인다.
+ * 칸 테두리(0.35mm)만큼 겹쳐 두 줄이 한 줄로 보이게 한다.
+ * 간격을 CSS와 계산식 두 곳에 두면 어긋나므로, 이 값 하나로 렌더링과 폭 계산을 함께 맞춘다.
+ */
+const BLANK_CELL_GAP_MM = -0.35
 
 
 function blankItems(rowCount: number, cellsPerRow: number, kind: BlankKind, cellMm: number) {
@@ -347,7 +354,7 @@ export function buildBlankLayout(
   kind: BlankKind,
   options: SheetOptions,
 ): SheetLayout {
-  const available = availableHeightMm(options)
+  const available = availableHeightMm()
 
   // 세로(문항 수)와 가로(칸 수) 양쪽에 들어가는 가장 큰 칸을 고른다
   let cellMm = AUTO_MIN_MM
@@ -355,7 +362,10 @@ export function buildBlankLayout(
     cellMm = FIXED_CELL_MM[options.cellSize]
   } else {
     for (let mm = BLANK_MAX_MM; mm >= AUTO_MIN_MM; mm -= AUTO_STEP_MM) {
-      const probe = buildMetrics(round(mm))
+      const probe: SheetMetrics = {
+        ...buildMetrics(round(mm)),
+        cellGapMm: kind === 'grid' ? BLANK_CELL_GAP_MM : CELL_GAP_MM,
+      }
       if (kind === 'grid' && mm > widthLimitMm(cellsPerRow, probe) + EPSILON) continue
       const total = rowCount * mm + Math.max(0, rowCount - 1) * probe.itemGapMm
       if (total <= available + EPSILON) {
@@ -365,7 +375,10 @@ export function buildBlankLayout(
     }
   }
 
-  const metrics = buildMetrics(cellMm)
+  const metrics: SheetMetrics = {
+    ...buildMetrics(cellMm),
+    cellGapMm: kind === 'grid' ? BLANK_CELL_GAP_MM : CELL_GAP_MM,
+  }
   const items = blankItems(rowCount, cellsPerRow, kind, cellMm)
   const totalHeightMm =
     items.reduce((sum, item) => sum + item.heightMm, 0) +

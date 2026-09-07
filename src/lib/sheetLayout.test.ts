@@ -92,7 +92,7 @@ describe('auto 칸 크기 — 문항 수에 맞춰 A4 한 장을 채운다 (Q5)'
     const few = buildAutoLayout(ten.slice(0, 4), 'listen', opts())
     const many = buildAutoLayout(ten, 'listen', opts())
     expect(few.itemGapMm).toBeGreaterThan(many.itemGapMm)
-    expect(few.metrics.cellMm).toBeLessThanOrEqual(15)
+    expect(few.metrics.cellMm).toBeLessThanOrEqual(20)
   })
 
   it('간격을 벌려도 어느 페이지도 넘치지 않는다', () => {
@@ -129,12 +129,6 @@ describe('auto 칸 크기 — 문항 수에 맞춰 A4 한 장을 채운다 (Q5)'
     expect(see).toBeLessThan(listen)
   })
 
-  it('머리글을 끄면 세로 공간이 늘어 칸이 같거나 커진다', () => {
-    const withHeader = resolveCellMm(ten, 'see', opts({ showHeader: true }))
-    const without = resolveCellMm(ten, 'see', opts({ showHeader: false }))
-    expect(without).toBeGreaterThanOrEqual(withHeader)
-  })
-
   it('10문항 3종 모두 A4 한 장에 들어간다', () => {
     for (const type of ['see', 'trace', 'listen'] as const) {
       const layout = buildAutoLayout(ten, type, opts())
@@ -151,10 +145,9 @@ describe('auto 칸 크기 — 문항 수에 맞춰 A4 한 장을 채운다 (Q5)'
 })
 
 describe('세로 공간 계산', () => {
-  it('머리글을 끄면 공간이 늘어난다', () => {
-    expect(availableHeightMm(opts({ showHeader: false }))).toBeGreaterThan(
-      availableHeightMm(opts({ showHeader: true })),
-    )
+  it('제목과 안내 문구를 뺀 나머지가 문항 자리다', () => {
+    // 이름·날짜·점수 머리글은 제거했다 — 쓰이지 않으면서 칸 자리만 먹었다
+    expect(availableHeightMm()).toBe(297 - 8 * 2 - 11 - 8)
   })
 
   it('빈 문장 목록도 안전하게 처리한다', () => {

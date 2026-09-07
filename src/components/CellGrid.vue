@@ -120,7 +120,8 @@ const showText = computed(() => props.variant !== 'empty')
 
 .is-answer .char {
   color: #333;
-  font-weight: 600;
+  /* 굵으면 "뚫"처럼 획이 많은 글자가 뭉개진다 */
+  font-weight: 400;
 }
 
 .is-answer .space {

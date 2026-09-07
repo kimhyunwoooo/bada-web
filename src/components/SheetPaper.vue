@@ -32,7 +32,6 @@ const meta = computed(() => (props.blank ? BLANK_META[props.blank] : SHEET_META[
       '--number-col': `${layout.metrics.numberColMm}mm`,
       '--answer-gap': `${layout.metrics.answerGapMm}mm`,
       '--title-h': `${PAGE.titleMm}mm`,
-      '--header-h': `${PAGE.headerMm}mm`,
       '--guide-h': `${PAGE.guideMm}mm`,
       '--cell': `${layout.metrics.cellMm}mm`,
     }"
@@ -43,12 +42,6 @@ const meta = computed(() => (props.blank ? BLANK_META[props.blank] : SHEET_META[
       <span class="type">{{ meta.name }}</span>
       <span v-if="pageCount > 1" class="page-no">{{ pageIndex + 1 }} / {{ pageCount }}</span>
     </header>
-
-    <div v-if="options.showHeader" class="paper-header">
-      <span class="field">이름 <i></i></span>
-      <span class="field">날짜 <i></i></span>
-      <span class="field is-score">점수 <i></i></span>
-    </div>
 
     <p class="paper-guide">
       <b>★</b> {{ meta.guide }}
@@ -70,6 +63,7 @@ const meta = computed(() => (props.blank ? BLANK_META[props.blank] : SHEET_META[
           <!-- 빈 시험지: 문장이 없으므로 빈 줄만 그린다 -->
           <span v-if="blank === 'line'" class="blank-rule"></span>
 
+          <!-- 시험지는 원고지처럼 칸을 붙인다 -->
           <CellGrid
             v-else-if="blank === 'grid'"
             :lines="item.lines"
@@ -166,32 +160,6 @@ const meta = computed(() => (props.blank ? BLANK_META[props.blank] : SHEET_META[
   margin-left: auto;
   font-size: 3mm;
   color: #7a7a7a;
-}
-
-.paper-header {
-  display: flex;
-  gap: 6mm;
-  align-items: center;
-  height: var(--header-h);
-  flex: 0 0 auto;
-  font-size: 3.4mm;
-  color: #333;
-}
-
-.field {
-  display: flex;
-  align-items: baseline;
-  gap: 2mm;
-}
-
-.field i {
-  display: block;
-  width: 32mm;
-  border-bottom: 0.3mm solid #c8c6c3;
-}
-
-.field.is-score i {
-  width: 18mm;
 }
 
 .paper-guide {

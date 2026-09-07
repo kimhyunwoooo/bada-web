@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '../components/Icon.vue'
+import { detectInApp, openInExternalBrowser } from '../lib/browser'
 import PaperStage from '../components/PaperStage.vue'
 import SheetPaper from '../components/SheetPaper.vue'
 import { useSheetStore } from '../stores/sheets'
@@ -14,6 +15,7 @@ const store = useSheetStore()
 
 const ready = ref(false)
 const printing = ref(false)
+const inApp = ref(detectInApp())
 
 const CELL_SIZES: { value: CellSize; label: string }[] = [
   { value: 'auto', label: '자동' },
@@ -67,6 +69,12 @@ function toggleSpaceMark() {
  * Pretendard는 dynamic subset이라 첫 인쇄에서 특히 그렇다.
  */
 async function print() {
+  // 인앱 브라우저에서는 print()가 조용히 무시된다. 바깥 브라우저로 보낸다
+  if (inApp.value) {
+    openInExternalBrowser()
+    return
+  }
+
   printing.value = true
   try {
     if (document.fonts?.ready) await document.fonts.ready
@@ -127,6 +135,20 @@ async function print() {
             ∨ 표시
           </button>
         </div>
+      </div>
+    </div>
+
+
+    <!-- 인앱 브라우저는 window.print()를 무시한다. 눌러도 반응이 없으니 미리 안내한다 -->
+    <div v-if="inApp" class="inapp-note no-print">
+      <div class="container inapp-inner">
+        <Icon name="printer" :size="17" />
+        <p class="t-sm">
+          지금 브라우저에서는 인쇄가 되지 않습니다. 크롬·사파리로 열어 주세요.
+        </p>
+        <button class="btn btn-ink btn-sm" @click="openInExternalBrowser()">
+          브라우저로 열기
+        </button>
       </div>
     </div>
 

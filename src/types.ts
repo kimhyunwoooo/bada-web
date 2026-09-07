@@ -13,8 +13,6 @@ export interface SheetOptions {
   cellSize: CellSize
   /** 띄어쓰기 V 표시 */
   showSpaceMark: boolean
-  /** 이름/날짜/점수 머리글 */
-  showHeader: boolean
 }
 
 export interface SheetSet {
@@ -106,5 +104,5 @@ export const SHEET_META: Record<
 }
 
 export function createDefaultOptions(): SheetOptions {
-  return { cellSize: 'auto', showSpaceMark: true, showHeader: true }
+  return { cellSize: 'auto', showSpaceMark: true }
 }
