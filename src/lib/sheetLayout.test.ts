@@ -29,6 +29,20 @@ const ten = [
   '친구에게 미안했어요.',
 ]
 
+/** 급수 뒤쪽에 나오는 긴 문장 — 칸을 고정하면 실제로 두 장이 필요하다 */
+const longTen = [
+  '아침에 일어나서 세수를 하고 밥을 먹었습니다.',
+  '동생과 함께 놀이터에서 신나게 뛰어놀았어요.',
+  '선생님께서 칭찬해 주셔서 정말 기분이 좋았습니다.',
+  '비가 그치고 하늘에 예쁜 무지개가 떴어요.',
+  '할머니 댁에 가서 맛있는 송편을 먹었습니다.',
+  '친구가 넘어져서 얼른 일으켜 주었어요.',
+  '도서관에서 재미있는 책을 세 권 빌렸습니다.',
+  '눈사람을 만들려고 장갑을 끼고 나갔어요.',
+  '엄마와 시장에 가서 사과를 샀습니다.',
+  '내일은 소풍이라서 잠이 오지 않았어요.',
+]
+
 describe('R5 — 한 줄 최대 칸 수는 용지 폭에서 나온다', () => {
   it('12mm 칸이면 A4 한 줄에 13칸 이상 들어간다', () => {
     expect(maxCellsPerLine(buildMetrics(12))).toBeGreaterThanOrEqual(13)
@@ -101,6 +115,9 @@ describe('auto 칸 크기 — 문항 수에 맞춰 A4 한 장을 채운다 (Q5)'
       // 칸을 크게 고정해 일부러 두 장으로 넘긴 경우까지 본다
       { texts: ten, size: 'lg' as const },
       { texts: ten, size: 'md' as const },
+      { texts: longTen, size: 'auto' as const },
+      { texts: longTen, size: 'lg' as const },
+      { texts: longTen, size: 'md' as const },
     ]
 
     for (const { texts, size } of configs) {
@@ -117,10 +134,32 @@ describe('auto 칸 크기 — 문항 수에 맞춰 A4 한 장을 채운다 (Q5)'
   })
 
   it('두 장으로 넘어가도 문항 번호는 이어지고 하나도 빠지지 않는다 (Q11)', () => {
-    const layout = buildAutoLayout(ten, 'see', opts({ cellSize: 'lg' }))
+    // 짧은 문장은 간격을 좁혀 한 장에 들어가므로, 정말 두 장이 필요한 긴 문장으로 본다
+    const layout = buildAutoLayout(longTen, 'see', opts({ cellSize: 'lg' }))
     expect(layout.pageCount).toBeGreaterThan(1)
     const numbers = layout.pages.flatMap((page) => page.items.map((item) => item.index))
     expect(numbers).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  })
+
+  it('조금 넘칠 뿐이면 간격을 좁혀서 한 장에 넣는다', () => {
+    // 큰 칸(14mm) + 10문항 보고 쓰기는 기본 간격 4.5mm로는 10mm쯤 넘쳐 두 장이 됐다.
+    // 두 장으로 나뉘느니 간격을 좁히는 편이 낫다.
+    const layout = buildAutoLayout(ten, 'see', opts({ cellSize: 'lg' }))
+    expect(layout.pageCount).toBe(1)
+    expect(layout.itemGapMm).toBeLessThan(4.5)
+  })
+
+  it('간격을 좁혀도 줄 간격보다는 넓다 — 문항 경계가 줄 경계로 보이면 안 된다', () => {
+    for (const type of ['see', 'trace', 'listen'] as const) {
+      for (const size of ['auto', 'sm', 'md', 'lg'] as const) {
+        for (const texts of [ten, longTen]) {
+          const layout = buildAutoLayout(texts, type, opts({ cellSize: size }))
+          for (const page of layout.pages) {
+            expect(page.itemGapMm).toBeGreaterThan(layout.metrics.lineGapMm)
+          }
+        }
+      }
+    }
   })
 
   it('보고 쓰기는 답안 줄이 더 있으므로 칸이 더 작아진다', () => {

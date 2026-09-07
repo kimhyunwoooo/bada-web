@@ -50,6 +50,13 @@ const AUTO_STEP_MM = 0.5
  * 상한을 낮춰 여유를 칸 쪽으로 먼저 보낸다.
  */
 const MAX_ITEM_GAP_MM = 9
+/**
+ * 문항 간격 하한.
+ * 10문항이 10mm 남짓 넘쳐 두 장이 되는 일이 잦았다 — 두 장으로 나뉘느니
+ * 간격을 좁혀서라도 한 장에 넣는 편이 낫다.
+ * 줄 간격(2.5mm)보다는 커야 문항 경계가 줄 경계와 구분된다.
+ */
+const MIN_ITEM_GAP_MM = 3
 const EPSILON = 0.001
 
 export interface SheetMetrics {
@@ -195,14 +202,15 @@ export interface SheetLayout {
  * 페이지마다 따로 계산해야 한다 — 첫 장 기준으로 계산한 간격을 다른 장에 그대로 쓰면
  * 그 장이 넘칠 수 있다.
  */
-function fitGapMm(items: LayoutItem[], availableMm: number, baseGapMm: number): number {
-  if (items.length < 2) return baseGapMm
+function fitGapMm(items: LayoutItem[], availableMm: number): number {
+  if (items.length < 2) return ITEM_GAP_MM
   const used = items.reduce((sum, item) => sum + item.heightMm, 0)
   // 남은 높이를 간격 개수로 나눈 값이 곧 간격이다.
   // 기본 간격에 "더하면" (n-1) × 기본 간격만큼 페이지를 넘긴다.
   const spread = (availableMm - used) / (items.length - 1)
+  // 여유가 있으면 벌리고, 모자라면 하한까지 좁힌다.
   // 반올림하면 한 장을 0.01mm 넘길 수 있다. 페이지를 채우는 값은 항상 내림.
-  return floor2(Math.min(Math.max(baseGapMm, spread), MAX_ITEM_GAP_MM))
+  return floor2(Math.min(Math.max(MIN_ITEM_GAP_MM, spread), MAX_ITEM_GAP_MM))
 }
 
 /**
@@ -246,14 +254,19 @@ export function buildLayout(
     return { index: i + 1, text, lines, heightMm: itemHeightMm(lines.length, type, metrics) }
   })
 
+  const available = availableHeightMm()
+  // 페이지를 나누기 전에 간격부터 좁혀 본다.
+  // 기본 간격으로 나눠 놓고 나중에 좁히면, 좁혔으면 한 장에 들어갔을 것도 이미 두 장이다.
+  const packGapMm = fitGapMm(items, available)
+
   const totalHeightMm =
     items.reduce((sum, item) => sum + item.heightMm, 0) +
-    Math.max(0, items.length - 1) * metrics.itemGapMm
+    Math.max(0, items.length - 1) * packGapMm
 
-  const available = availableHeightMm()
-  const pages: SheetPage[] = paginate(items, available, metrics.itemGapMm).map((pageItems) => ({
+  const pages: SheetPage[] = paginate(items, available, packGapMm).map((pageItems) => ({
     items: pageItems,
-    itemGapMm: fitGapMm(pageItems, available, metrics.itemGapMm),
+    // 나뉜 뒤 각 장의 남는 공간은 그 장 안에서 다시 고르게 벌린다
+    itemGapMm: fitGapMm(pageItems, available),
   }))
 
   return {
@@ -367,7 +380,7 @@ export function buildBlankLayout(
         cellGapMm: kind === 'grid' ? BLANK_CELL_GAP_MM : CELL_GAP_MM,
       }
       if (kind === 'grid' && mm > widthLimitMm(cellsPerRow, probe) + EPSILON) continue
-      const total = rowCount * mm + Math.max(0, rowCount - 1) * probe.itemGapMm
+      const total = rowCount * mm + Math.max(0, rowCount - 1) * MIN_ITEM_GAP_MM
       if (total <= available + EPSILON) {
         cellMm = round(mm)
         break
@@ -380,13 +393,14 @@ export function buildBlankLayout(
     cellGapMm: kind === 'grid' ? BLANK_CELL_GAP_MM : CELL_GAP_MM,
   }
   const items = blankItems(rowCount, cellsPerRow, kind, cellMm)
+  const packGapMm = fitGapMm(items, available)
   const totalHeightMm =
     items.reduce((sum, item) => sum + item.heightMm, 0) +
-    Math.max(0, items.length - 1) * metrics.itemGapMm
+    Math.max(0, items.length - 1) * packGapMm
 
-  const pages: SheetPage[] = paginate(items, available, metrics.itemGapMm).map((pageItems) => ({
+  const pages: SheetPage[] = paginate(items, available, packGapMm).map((pageItems) => ({
     items: pageItems,
-    itemGapMm: fitGapMm(pageItems, available, metrics.itemGapMm),
+    itemGapMm: fitGapMm(pageItems, available),
   }))
 
   return {
